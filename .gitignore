@@ -1,0 +1,8 @@
+# Kimeneti mappák
+data/
+
+# Lefordított kód
+dist/
+
+# Editor
+.vscode/
