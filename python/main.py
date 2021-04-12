@@ -2,12 +2,22 @@ from sys import argv
 
 
 def oopp_str(oopp):
+    """Átalakít egy OOPP dictionary-t olvasható oo:pp szöveggé"""
     return str(oopp['oo']).zfill(2) + ":" + str(oopp['pp']).zfill(2)
-
-# 1
 
 
 def beolvas(file):
+    """
+    1. Feladat
+    Beolvas egy adatbázis fájlt, visszatér egy adatbázis dictionary-re,
+    {
+        'varos': string,
+        'oo': int, 'pp': int,
+        'szelirany': string,
+        'szelerosseg': int,
+        'homerseklet': int
+    }[] formátumban
+    """
     try:
         file = open(file, mode="r")
         adatbazis = []
@@ -29,46 +39,55 @@ def beolvas(file):
         print("Hiba történt a fájl megnyitásakor")
         return []
 
-# 2
-
 
 def utolso_meresi_adat(adatbazis, varos):
-    keresettvaros = varos.strip()
-    korrektvaros = filter(lambda x: x['varos'] == keresettvaros, adatbazis)
+    """
+    2. Feladat
+    Visszatér a teljes utolsó mérési adatra az adott városból 
+    """
+    # Mérések kiválogatása az adott városból (ahol 'varos' == keresettvaros)
+    korrektvaros = filter(lambda x: x['varos'] == varos, adatbazis)
     utolso = {'oo': -1, 'pp': -1}
 
-    for varos in korrektvaros:
-        utolso['pp'] = varos['pp'] if varos['pp'] > utolso['pp'] else utolso['pp']
-        if varos['oo'] > utolso['oo']:
-            utolso['oo'] = varos['oo']
-            utolso['pp'] = varos['pp']
+    for meres in korrektvaros:
+        # 'utolso' beállítása a későbbi adatra a mérés és a tárolt érték közül
+
+        utolso['pp'] = meres['pp'] if meres['pp'] > utolso['pp'] else utolso['pp']
+        if meres['oo'] > utolso['oo']:  # amennyiben az óra későbbi, a percet is írja át
+            utolso['oo'] = meres['oo']
+            utolso['pp'] = meres['pp']
 
     return utolso
 
-# 3
-
 
 def napi_hilo(adatbazis):
-    hi = -1
+    """
+    3. Feladat
+    Visszatér a mérési adatok közül a legmagasabb és legalacsonyabb hőmérsékletű *egész* adatra
+    """
+
+    hi = -1  # hi beállítása olyan értékre, aminél kisebb az adatok nem lehetnek
     hi_ido = {'oo': -1, 'pp': -1}
     hi_varos = ""
-    lo = 100
+
+    lo = 100  # lo beállítása olyan értékre, aminél nagyobb az adatok nem lehetnek
     lo_ido = {'oo': -1, 'pp': -1}
     lo_varos = ""
 
-    for varos in adatbazis:
-        # hi = varos > hi ? varos : hi
-        if varos['homerseklet'] > hi:
-            hi = varos['homerseklet']
-            hi_ido['oo'] = varos['oo']
-            hi_ido['pp'] = varos['pp']
-            hi_varos = varos['varos']
+    for meres in adatbazis:
+        # amennyiben a mérési adat hőmérséklete több mint az eltárolt hőmérséklet, frissítjük
+        if meres['homerseklet'] > hi:
+            hi = meres['homerseklet']
+            hi_ido['oo'] = meres['oo']
+            hi_ido['pp'] = meres['pp']
+            hi_varos = meres['varos']
 
-        if varos['homerseklet'] < lo:
-            lo = varos['homerseklet']
-            lo_ido['oo'] = varos['oo']
-            lo_ido['pp'] = varos['pp']
-            lo_varos = varos['varos']
+        # amennyiben a mérési adat hőmérséklete kevesebb mint az eltárolt hőmérséklet, frissítjük
+        if meres['homerseklet'] < lo:
+            lo = meres['homerseklet']
+            lo_ido['oo'] = meres['oo']
+            lo_ido['pp'] = meres['pp']
+            lo_varos = meres['varos']
 
     return {
         'hi': hi, 'hi_ido': hi_ido, 'hi_varos': hi_varos,
@@ -161,7 +180,7 @@ def main():
             print("2. feladat")
             varos = input("Adja meg a település kódját! Település: ")
 
-            adat = utolso_meresi_adat(adatbazis, varos)
+            adat = utolso_meresi_adat(adatbazis, varos.strip())
             print("Az utolsó mérési adat a megadott településről " +
                   oopp_str(adat) + "-kor érkezett")
             # 3
