@@ -93,10 +93,13 @@ def napi_hilo(adatbazis):
         'hi': hi, 'hi_ido': hi_ido, 'hi_varos': hi_varos,
         'lo': lo, 'lo_ido': lo_ido, 'lo_varos': lo_varos}
 
-# 4
-
-
 def kiirat_szelcsend_hely_ido(adatbazis):
+    """
+    4. Feladat
+    Kiírja a szélcsendes mérések helyét és idejét minden szélcsendes mérésre
+    """
+
+    # kiválogatja az összes szélcsendes mérést
     szelcsendes_meresek = filter(
         lambda x: x['szelirany'] == '000' and x['szelerosseg'] == 0, adatbazis)
 
@@ -108,24 +111,35 @@ def kiirat_szelcsend_hely_ido(adatbazis):
     if not volt_meres:
         print("Nem volt szélcsend a mérések idején.")
 
-# 5 a, b
-
 
 def kiirat_napi_kozephomerseklet(adatbazis):
+    """
+    5. Feladat
+    Kiíratja az összes város napi középhőmérsékletét (amennyiben lehet),
+    valamint a min. és max. hőmérsékletet
+    """
+
+    # minden különböző kód eltárolása (set-ben minden csak egyszer jelenhet meg)
     varos_kod_lista = set(varos['varos'] for varos in adatbazis)
     szukseges_orak = [1, 7, 13, 19]
 
     for varos_kod in varos_kod_lista:
+        # adott városhoz tartozó mérések kiválogatása
+        meresek = filter(lambda x: x['varos'] == varos_kod, adatbazis)
+
         nezett_orak = set()
         szamlalt_orak = 0
         szum = 0
-        meresek = filter(lambda x: x['varos'] == varos_kod, adatbazis)
         hi = -1
         lo = 100
 
         for meres in meresek:
+            # hi és meres['homerseklet'] közül a nagyobb eltárolása
             hi = meres['homerseklet'] if meres['homerseklet'] > hi else hi
+
+            # lo és meres['homerseklet'] közül a kisebb eltárolása
             lo = meres['homerseklet'] if meres['homerseklet'] < lo else lo
+
             if meres['oo'] in szukseges_orak:
                 szum = szum + meres['homerseklet']
                 nezett_orak.add(meres['oo'])
@@ -140,14 +154,17 @@ def kiirat_napi_kozephomerseklet(adatbazis):
             print(varos_kod + " NA; Hőmérséklet-ingadozás: " +
                   str(ingadozas))
 
-# 6
-
-
 def hatos(adatbazis, mappa):
+    """
+    6. Feladat
+    Kiírja a városok adatait megfelelő fájlokba
+    """
+
     varos_kod_lista = set(varos['varos'] for varos in adatbazis)
 
     for varos_kod in varos_kod_lista:
         try:
+            # adott város összes mérése
             meresek = filter(lambda x: x['varos'] == varos_kod, adatbazis)
             kimeneti_fajl = open(
                 file=mappa + "/" + varos_kod + ".txt",
@@ -161,56 +178,49 @@ def hatos(adatbazis, mappa):
 
             kimeneti_fajl.close()
         except FileNotFoundError:
-            print("Nem sikerült írni a kimenet/" + varos_kod + ".txt fájlba:(")
+            print("Nem sikerült írni a " + mappa + "/" + varos_kod + ".txt fájlba:(")
 
     print("A fájlok elkészültek.")
-
 
 def main():
     adatbazis_utvonal = argv[1]
     kimeneti_mappa = argv[2]
 
-    # 1
+    # adatbázis beolvasása
     adatbazis = beolvas(file=adatbazis_utvonal)
-    kilep = False
 
-    while not kilep:
-        try:
-            # 2
-            print("2. feladat")
-            varos = input("Adja meg a település kódját! Település: ")
+    try:
+        print("2. feladat")
+        varos = input("Adja meg a település kódját! Település: ")
 
-            adat = utolso_meresi_adat(adatbazis, varos.strip())
-            print("Az utolsó mérési adat a megadott településről " +
-                  oopp_str(adat) + "-kor érkezett")
-            # 3
-            adat = napi_hilo(adatbazis)
-            print("3. feladat")
-            print("Legmagasabb hőmérséklet: " +
-                  str(adat['hi_varos']) + " " + oopp_str(adat['hi_ido']) + " " + str(adat['hi']) + " fok.")
-            print("Legalacsonyabb hőmérséklet: " +
-                  str(adat['lo_varos']) + " " + oopp_str(adat['lo_ido']) + " " + str(adat['lo']) + " fok.")
+        utolso_adat = utolso_meresi_adat(adatbazis, varos.strip())
+        print("Az utolsó mérési adat a megadott településről " +
+                oopp_str(utolso_adat) + "-kor érkezett")
 
-            # 4
-            print("4. feladat")
-            kiirat_szelcsend_hely_ido(adatbazis)
+        adat = napi_hilo(adatbazis)
+        print("3. feladat")
+        print("Legmagasabb hőmérséklet: " +
+                str(adat['hi_varos']) + " " + oopp_str(adat['hi_ido']) + " " + str(adat['hi']) + " fok.")
+        print("Legalacsonyabb hőmérséklet: " +
+                str(adat['lo_varos']) + " " + oopp_str(adat['lo_ido']) + " " + str(adat['lo']) + " fok.")
 
-            # 5
-            print("5. feladat")
-            kiirat_napi_kozephomerseklet(adatbazis)
+        # 4
+        print("4. feladat")
+        kiirat_szelcsend_hely_ido(adatbazis)
 
-            # 6
-            print("6. feladat")
-            hatos(adatbazis, mappa=kimeneti_mappa)
+        # 5
+        print("5. feladat")
+        kiirat_napi_kozephomerseklet(adatbazis)
 
-            break
+        # 6
+        print("6. feladat")
+        hatos(adatbazis, mappa=kimeneti_mappa)
 
-        except EOFError as e:
-            print("[interrupt]", e)
-            break
-        except KeyboardInterrupt as e:
-            print("[interrupt]", e)
-            break
+    except EOFError as e:
+        print("[interrupt]", e)
+
+    except KeyboardInterrupt as e:
+        print("[interrupt]", e)
 
 
 if __name__ == "__main__":
